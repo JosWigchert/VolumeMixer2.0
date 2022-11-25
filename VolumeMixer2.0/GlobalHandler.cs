@@ -1,4 +1,6 @@
-﻿using JosLibrary.Communication.Database;
+﻿using JosLibrary.Audio;
+using JosLibrary.Collections.Generic;
+using JosLibrary.Communication.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +40,13 @@ namespace VolumeMixer
             set { _programBacklog = value; }
         }
 
+        private MultiDict<string, AudioSession> _audioSessions;
+
+        public MultiDict<string, AudioSession> AudioSessions
+        {
+            get { return _audioSessions; }
+            set { _audioSessions = value; }
+        }
 
         private MsSQLDatabase _database; // change type to change database type
 

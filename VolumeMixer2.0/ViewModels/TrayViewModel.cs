@@ -17,7 +17,7 @@ using System.Data.Common;
 
 namespace VolumeMixer.ViewModels
 {
-    public class MainViewModel : BindableBase
+    public class TrayViewModel : BindableBase
     {
         #region Commands
 
@@ -53,9 +53,9 @@ namespace VolumeMixer.ViewModels
 
         #region Properties
 
-        private MainView _view;
+        private TrayView _view;
 
-        public MainView View
+        public TrayView View
         {
             get { return _view; }
             set { _view = value; }
@@ -93,7 +93,7 @@ namespace VolumeMixer.ViewModels
         #endregion
 
         #region Constructors
-        public MainViewModel(MainView view)
+        public TrayViewModel(TrayView view)
         {
             View = view;
 
@@ -182,9 +182,7 @@ namespace VolumeMixer.ViewModels
 
             foreach (string name in GlobalHandler.Instance.AudioSessions.Keys)
             {
-                AudioSliderModel sliderModel = new AudioSliderModel { ProgramName = name, Value = (float)Math.Floor(GlobalHandler.Instance.AudioSessions[name][0].GetVolume() * 100), Muted = GlobalHandler.Instance.AudioSessions[name][0].GetMute() };
-                GetProgramDisplayName(sliderModel);
-                ProgramSliders.Add(sliderModel);
+                AddAudioSliderModel(name);
             }
         }
         private void InitializeCategorySliders()
@@ -217,7 +215,7 @@ namespace VolumeMixer.ViewModels
 
         private async void GetProgramDisplayName(AudioSliderModel sliderModel)
         {
-            if (string.IsNullOrEmpty(sliderModel.ProgramName));
+            if (string.IsNullOrEmpty(sliderModel.ProgramName)) ;
 
             List<MsSqlDatabaseQueryArgument> arguments = new List<MsSqlDatabaseQueryArgument>();
             arguments.Add(new MsSqlDatabaseQueryArgument() { Name = "ProgramName", Type = System.Data.SqlDbType.VarChar, Value = sliderModel.ProgramName });
@@ -263,11 +261,30 @@ namespace VolumeMixer.ViewModels
 
                 if (!contains)
                 {
-                    AudioSliderModel sliderModel = new AudioSliderModel { ProgramName = name, Value = (float)Math.Floor(GlobalHandler.Instance.AudioSessions[name][0].GetVolume() * 100), Muted = GlobalHandler.Instance.AudioSessions[name][0].GetMute() };
-                    GetProgramDisplayName(sliderModel);
-                    ProgramSliders.Add(sliderModel);
+                    AddAudioSliderModel(name);
                 }
             }
+        }
+
+        private void AddAudioSliderModel(string name)
+        {
+            List<AudioSession> sessions = GlobalHandler.Instance.AudioSessions[name];
+
+            AudioSliderModel sliderModel = new AudioSliderModel
+            {
+                ProgramName = name,
+                Value = (float)Math.Floor(sessions[0].GetVolume() * 100),
+                Muted = sessions[0].GetMute()
+            };
+
+            foreach (var session in sessions)
+            {
+                session.VolumeChanged += sliderModel.UpdateVolume;
+                session.MuteChanged += sliderModel.UpdateMute;
+            }
+
+            GetProgramDisplayName(sliderModel);
+            ProgramSliders.Add(sliderModel);
         }
 
         private void InitializeAudioSessions()
@@ -286,7 +303,7 @@ namespace VolumeMixer.ViewModels
                     GlobalHandler.Instance.AudioSessions.Add(s.Process.ProcessName, s);
 
                     if (!GlobalHandler.Instance.ProgramBacklog.Contains(s.Process.ProcessName))
-                    { 
+                    {
                         GlobalHandler.Instance.ProgramBacklog.Add(s.Process.ProcessName);
                     }
                 }
@@ -343,7 +360,10 @@ namespace VolumeMixer.ViewModels
             {
                 if (item.DisplayName == program)
                 {
-                    GlobalHandler.Instance.AudioSessions[item.ProgramName].ForEach(s => { s.SetVolume(item.Value); s.SetMute(item.Muted); });
+                    if (GlobalHandler.Instance.AudioSessions.ContainsKey(item.ProgramName))
+                    {
+                        GlobalHandler.Instance.AudioSessions[item.ProgramName].ForEach(s => { s.SetVolume(item.Value); s.SetMute(item.Muted); });
+                    }
                 }
             }
         }

@@ -18,14 +18,14 @@ using VolumeMixer.ViewModels;
 namespace VolumeMixer.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for TrayView.xaml
     /// </summary>
-    public partial class MainView : MetroWindow
+    public partial class TrayView : UserControl
     {
-        public MainView()
+        public TrayView()
         {
             InitializeComponent();
-            DataContext = new MainViewModel(this);
+            DataContext = new TrayViewModel(this);
         }
     }
 }

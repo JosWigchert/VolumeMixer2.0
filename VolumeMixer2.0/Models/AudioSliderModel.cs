@@ -1,4 +1,5 @@
-﻿using Prism.Mvvm;
+﻿using JosLibrary.Audio;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -51,5 +52,14 @@ namespace VolumeMixer.Models
             set { SetProperty(ref _enabled, value); }
         }
 
+        public void UpdateVolume(object sender, VolumeChangedEventArgs e)
+        {
+            Value = (float)Math.Floor(e.Volume * 100);
+        }
+
+        public void UpdateMute(object sender, MuteChangedEventArgs e)
+        {
+            Muted = e.Mute;
+        }
     }
 }
